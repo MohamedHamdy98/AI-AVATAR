@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Recognition and Text-to-Speech</title>
+</head>
+<body>
+    <h1>Speech Recognition and Text-to-Speech</h1>
+
+    <!-- Form to upload audio for speech recognition -->
+    <h2>Speech Recognition</h2>
+    <form id="recognitionForm" enctype="multipart/form-data">
+        <label for="audioFile">Upload Audio File:</label>
+        <input type="file" id="audioFile" name="file" accept=".wav,.mp3,.m4a">
+        <button type="submit">Recognize Speech</button>
+    </form>
+    <div id="transcriptionResult"></div>
+
+    <hr>
+
+    <!-- Form to input text for text-to-speech -->
+    <h2>Text-to-Speech</h2>
+    <form id="synthesisForm">
+        <label for="textInput">Enter Text:</label>
+        <input type="text" id="textInput" name="text" required>
+        <button type="submit">Convert to Speech</button>
+    </form>
+    <div id="audioResult"></div>
+
+    <!-- Scripts to handle form submissions -->
+    <script>
+        // Handle speech recognition form submission
+        document.getElementById('recognitionForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            let formData = new FormData(this);
+            fetch('/testing/recognize', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('transcriptionResult').textContent = 'Error: ' + data.error;
+                } else {
+                    document.getElementById('transcriptionResult').textContent = 'Transcription: ' + data.transcription;
+                }
+            })
+            .catch(error => {
+                document.getElementById('transcriptionResult').textContent = 'Error: ' + error.message;
+            });
+        });
+
+        // Handle text-to-speech form submission
+        document.getElementById('synthesisForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            let text = document.getElementById('textInput').value;
+            fetch('/testing/synthesize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: text })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                } else {
+                    return response.json().then(error => {
+                        throw new Error(error.error);
+                    });
+                }
+            })
+            .then(blob => {
+                const audioUrl = URL.createObjectURL(blob);
+                const audio = new Audio(audioUrl);
+                audio.play();
+            })
+            .catch(error => {
+                document.getElementById('audioResult').textContent = 'Error: ' + error.message;
+            });
+        });
+    </script>
+</body>
+</html>

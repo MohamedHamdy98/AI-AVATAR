@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interaction</title>
+</head>
+<body>
+    <h1>AI Interaction</h1>
+    <form id="form">
+        <label for="input">Enter your query:</label>
+        <input type="text" id="input" name="input" required>
+        <button type="submit">Submit</button>
+    </form>
+    <p id="response"></p>
+
+    <script>
+        document.getElementById('form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const input = document.getElementById('input').value;
+            
+            fetch('/api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ input })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.response) {
+                    document.getElementById('response').textContent = 'AI Response: ' + data.response;
+                } else if (data.error) {
+                    document.getElementById('response').textContent = 'Error: ' + data.error;
+                }
+            })
+            .catch(error => {
+                document.getElementById('response').textContent = 'Fetch Error: ' + error.message;
+            });
+        });
+    </script>
+</body>
+</html>
